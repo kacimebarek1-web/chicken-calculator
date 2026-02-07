@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تطبيق حاسبة دجاج التسمين</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #e0f7fa, #e6fffa);
+    margin: 0;
+    padding: 0;
+    direction: rtl;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 2em;
+    color: #ffffff;
+    padding: 20px;
+    margin: 0;
+    background: linear-gradient(90deg, #2c7a7b, #319795);
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+  }
+
+  .container {
+    max-width: 700px;
+    margin: 30px auto;
+    background: #ffffff;
+    padding: 25px 30px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  }
+
+  .section {
+    margin-bottom: 25px;
+    padding: 15px 10px;
+    background: #f0fdfa;
+    border-radius: 15px;
+    border-left: 6px solid #2c7a7b;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 8px 0;
+    border-radius: 12px;
+    border: 1px solid #cfd8dc;
+    font-size: 15px;
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    color: #ffffff;
+    background: linear-gradient(90deg, #2c7a7b, #319795);
+  }
+
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+  }
+
+  #result {
+    margin-top: 20px;
+    padding: 18px 15px;
+    background: #f7fafc;
+    border-radius: 15px;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
+    font-weight: bold;
+    font-size: 18px;
+  }
+
+  .profit { color: green; }
+  .loss { color: red; }
+
+  footer {
+    text-align: center;
+    margin: 25px 0 0 0;
+    font-size: 14px;
+    color: #555;
+  }
+
+  footer .owner {
+    font-weight: bold;
+    color: #2c7a7b;
+  }
+</style>
+</head>
+<body>
+<h1>تطبيق حاسبة دجاج التسمين</h1>
+
+<div class="container">
+  <div class="section">
+    <input type="number" id="priceChick" placeholder="سعر الكتكوت">
+    <input type="number" id="numChicks" placeholder="عدد الكتكيت">
+    <input type="number" id="feedPrice" placeholder="سعر العلف للقنطار">
+    <input type="number" id="feedUsed" placeholder="كمية العلف المستخدمة (قنطار)">
+    <input type="number" id="sellPrice" placeholder="سعر البيع للكيلو">
+    <input type="number" id="commission" placeholder="هامش التاجر / الوسطاء لكل كيلو">
+    <input type="number" id="medicine" placeholder="سعر الدواء">
+    <input type="number" id="waterEnergy" placeholder="سعر الماء والكهرباء والغاز">
+    <input type="number" id="workers" placeholder="أجور العمال">
+    <input type="number" id="bedding" placeholder="تكلفة الفرشة">
+    <input type="number" id="cleaning" placeholder="تكلفة التنظيف والتعقيم">
+    <input type="number" id="taxes" placeholder="الضرائب أو الرسوم">
+    <input type="number" id="deadLarge" placeholder="عدد الدجاج الميت كبير (2.5-3.5كغ)">
+    <input type="number" id="deadMedium" placeholder="عدد الدجاج الميت متوسط (1-2 كغ)">
+    <input type="number" id="deadSmall" placeholder="عدد الدجاج الميت صغير (<1كغ)">
+    <input type="number" id="unsold" placeholder="عدد الدجاج غير المباع">
+    <input type="number" id="totalWeight" placeholder="الوزن الكلي للدجاج (كغ)">
+  </div>
+
+  <button onclick="calculate()">احسب الربح / الخسارة</button>
+
+  <div id="result"></div>
+
+  <footer>
+    Developed by <span class="owner">Kaci Mebarek</span>
+  </footer>
+</div>
+
+<script>
+function formatCurrencyDZ(value) {
+  value = Math.round(value);
+
+  if (value >= 1000000) {
+    let millions = Math.floor(value / 1000000);
+    let thousands = Math.floor((value % 1000000) / 1000);
+
+    if (thousands > 0) {
+      return `${millions} مليون و ${thousands} ألف`;
+    } else {
+      return `${millions} مليون`;
+    }
+  }
+
+  if (value >= 1000) {
+    let thousands = Math.floor(value / 1000);
+    return `${thousands} ألف`;
+  }
+
+  return `${value}`;
+}
+
+function calculate() {
+  let priceChick = Number(document.getElementById("priceChick").value);
+  let numChicks = Number(document.getElementById("numChicks").value);
+  let feedPrice = Number(document.getElementById("feedPrice").value);
+  let feedUsed = Number(document.getElementById("feedUsed").value);
+  let sellPrice = Number(document.getElementById("sellPrice").value);
+  let commission = Number(document.getElementById("commission").value);
+  let medicine = Number(document.getElementById("medicine").value);
+  let waterEnergy = Number(document.getElementById("waterEnergy").value);
+  let workers = Number(document.getElementById("workers").value);
+  let bedding = Number(document.getElementById("bedding").value);
+  let cleaning = Number(document.getElementById("cleaning").value);
+  let taxes = Number(document.getElementById("taxes").value);
+  let deadLarge = Number(document.getElementById("deadLarge").value);
+  let deadMedium = Number(document.getElementById("deadMedium").value);
+  let deadSmall = Number(document.getElementById("deadSmall").value);
+  let unsold = Number(document.getElementById("unsold").value);
+  let totalWeight = Number(document.getElementById("totalWeight").value);
+
+  // حساب التكاليف
+  let costChicks = priceChick * numChicks;
+  let costFeed = feedPrice * feedUsed;
+  let costCommission = commission * totalWeight;
+  let costDead = (deadLarge*3 + deadMedium*1.5 + deadSmall*0.5) * sellPrice;
+  let costUnsold = unsold * sellPrice;
+
+  let totalCost = costChicks + costFeed + medicine + waterEnergy + workers + bedding + cleaning + taxes + costCommission + costDead + costUnsold;
+  let totalIncome = sellPrice * totalWeight;
+  let profit = totalIncome - totalCost;
+
+  // عرض النتائج
+  let resultDiv = document.getElementById("result");
+  if(profit >= 0){
+    resultDiv.innerHTML = `<p class="profit">الربح المتوقع: ${formatCurrencyDZ(profit)}</p>`;
+  } else {
+    resultDiv.innerHTML = `<p class="loss">الخسارة المتوقعة: ${formatCurrencyDZ(Math.abs(profit))}</p>`;
+  }
+}
+</script>
+</body>
+</html>
