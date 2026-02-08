@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حاسبة دجاج التسمين الواقعية</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+
+<body class="bg-gray-100 text-gray-800 min-h-screen">
+
+<header class="bg-green-700 text-white text-center py-6 shadow">
+  <h1 class="text-3xl font-extrabold">
+    <i class="fa-solid fa-drumstick-bite ml-2"></i>
+    حاسبة دجاج التسمين
+  </h1>
+  <p class="mt-2 font-semibold">
+    حساب فلاحي واقعي مطابق للسوق الجزائري (2025–2026)
+  </p>
+</header>
+
+<div id="app" class="max-w-4xl mx-auto p-4 py-10">
+
+<div class="bg-white rounded-xl shadow-xl overflow-hidden">
+
+<!-- Inputs -->
+<div class="grid md:grid-cols-2 gap-4 p-6 bg-gray-50">
+  <div v-for="(label,key) in labels" :key="key">
+    <label class="block text-sm font-bold mb-1">{{ label }}</label>
+    <input type="number" v-model.number="form[key]"
+      class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none">
+  </div>
+</div>
+
+<!-- Button -->
+<div class="p-6 border-t">
+  <button @click="calculate"
+    class="w-full bg-green-600 text-white py-3 rounded-lg font-bold">
+    <i class="fa-solid fa-calculator ml-1"></i>
+    احسب النتائج
+  </button>
+</div>
+
+<!-- Error -->
+<div v-if="error" class="p-4 text-center text-red-600 font-bold">
+  {{ error }}
+</div>
+
+<!-- Results -->
+<div v-if="result" class="p-6 border-t space-y-5">
+
+  <!-- Final Profit -->
+  <div :class="result.profit>=0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+    class="rounded-xl p-6 text-center font-extrabold">
+    <div class="text-xl mb-2">
+      {{ result.profit>=0 ? 'الربح الصافي الحقيقي' : 'الخسارة الصافية الحقيقية' }}
+    </div>
+    <div class="text-4xl">
+      {{ formatMoney(result.profit) }}
+    </div>
+  </div>
+
+  <!-- Details -->
+  <div class="grid md:grid-cols-3 gap-4 text-center">
+
+    <div class="border rounded-lg p-4">
+      <p class="text-sm text-gray-500">إجمالي الإيرادات</p>
+      <p class="text-xl font-bold text-green-700">
+        {{ formatMoney(result.income) }}
+      </p>
+    </div>
+
+    <div class="border rounded-lg p-4">
+      <p class="text-sm text-gray-500">إجمالي التكاليف</p>
+      <p class="text-xl font-bold text-red-600">
+        {{ formatMoney(result.totalCosts) }}
+      </p>
+    </div>
+
+    <div class="border rounded-lg p-4">
+      <p class="text-sm text-gray-500">خسارة النافق + غير المباع</p>
+      <p class="text-xl font-bold text-orange-600">
+        {{ formatMoney(result.lossDead) }}
+      </p>
+    </div>
+
+    <div class="border rounded-lg p-4">
+      <p class="text-sm text-gray-500">نسبة النفوق</p>
+      <p class="text-xl font-bold">
+        {{ result.mortality }}%
+      </p>
+    </div>
+
+    <div class="border rounded-lg p-4">
+      <p class="text-sm text-gray-500">متوسط وزن الدجاجة</p>
+      <p class="text-xl font-bold">
+        {{ result.avgWeight }} كغ
+      </p>
+    </div>
+
+    <div class="border rounded-lg p-4">
+      <p class="text-sm text-gray-500">معامل التحويل (FCR)</p>
+      <p class="text-xl font-bold"
+         :class="result.fcr<=1.8 ? 'text-green-600' : result.fcr<=2.1 ? 'text-orange-500' : 'text-red-600'">
+        {{ result.fcr }}
+      </p>
+    </div>
+
+  </div>
+
+</div>
+</div>
+
+<footer class="text-center text-sm text-gray-500 mt-10">
+  تطوير: <b class="text-green-700">Kaci Mebarek</b>
+</footer>
+
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script>
+const { createApp, ref } = Vue;
+
+createApp({
+setup(){
+
+const form = ref({
+  priceChick:0,
+  numChicks:0,
+  feedPrice:0,
+  feedUsed:0, // قنطار
+  sellPrice:0,
+  commission:0,
+  medicine:0,
+  energy:0,
+  bedding:0,
+  cleaning:0,
+  dead:0,
+  unsold:0,
+  totalWeight:0 // كغ
+});
+
+const labels = {
+  priceChick:'سعر الكتكوت (دج)',
+  numChicks:'عدد الكتاكيت',
+  feedPrice:'سعر القنطار علف (دج)',
+  feedUsed:'كمية العلف (قنطار)',
+  sellPrice:'سعر بيع الكيلو (دج)',
+  commission:'عمولة الكيلو (دج)',
+  medicine:'الدواء (دج)',
+  energy:'ماء + كهرباء (دج)',
+  bedding:'الفرشة (دج)',
+  cleaning:'التنظيف (دج)',
+  dead:'النافق',
+  unsold:'غير المباع',
+  totalWeight:'الوزن المباع (كغ)'
+};
+
+const result = ref(null);
+const error = ref(null);
+
+function calculate(){
+  error.value = null;
+
+  if(form.value.numChicks<=0 || form.value.totalWeight<=0){
+    error.value = 'تحقق من عدد الكتاكيت والوزن المباع';
+    return;
+  }
+
+  const total = form.value.numChicks;
+  const deadCount = form.value.dead + form.value.unsold;
+  const sold = total - deadCount;
+
+  if(sold<=0){
+    error.value = 'لا يوجد دجاج مباع';
+    return;
+  }
+
+  const income = form.value.totalWeight * form.value.sellPrice;
+
+  const totalCosts =
+    (form.value.priceChick * total) +
+    (form.value.feedPrice * form.value.feedUsed) +
+    (form.value.commission * form.value.totalWeight) +
+    form.value.medicine +
+    form.value.energy +
+    form.value.bedding +
+    form.value.cleaning;
+
+  // خسارة النافق + غير المباع
+  const chickLoss = deadCount * form.value.priceChick;
+
+  // خسارة العلف (افتراض 50% من حصة كل نافق)
+  const avgFeedPerBird = form.value.feedUsed / total; // قنطار
+  const wastedFeedPerDead = avgFeedPerBird * 0.5;
+  const totalWastedFeed = wastedFeedPerDead * deadCount;
+  const feedLoss = totalWastedFeed * form.value.feedPrice;
+
+  const lossDead = chickLoss + feedLoss;
+
+  const profit = income - totalCosts - lossDead;
+
+  const avgWeight = (form.value.totalWeight / sold).toFixed(3);
+  const feedKg = form.value.feedUsed * 100; // تحويل قنطار إلى كغ
+  const fcr = (feedKg / form.value.totalWeight).toFixed(2);
+
+  result.value = {
+    income,
+    totalCosts,
+    lossDead,
+    profit,
+    mortality: ((deadCount/total)*100).toFixed(2),
+    avgWeight,
+    fcr
+  };
+}
+
+function formatMoney(v){
+  if (v == null || isNaN(v)) return '—';
+  const abs = Math.abs(Math.round(v));
+  return abs.toLocaleString('fr-DZ') + ' دج';
+}
+
+return { form, labels, calculate, result, error, formatMoney };
+}
+}).mount('#app');
+</script>
+
+</body>
+</html>
