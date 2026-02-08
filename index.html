@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>Poule de chair calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Tajawal', sans-serif; background-color: #FFFDF5; }
+    .input { width:100%; padding:14px; border-radius:14px; border:1px solid #ddd; font-size:1.1rem; }
+    h1, h2, h3 { line-height:1.3; }
+  </style>
+</head>
+<body>
+
+<div id="app" class="max-w-6xl mx-auto p-6">
+
+  <h1 class="text-5xl font-black text-center mb-8 text-green-800">
+    Poule de chair calculator
+  </h1>
+
+  <!-- المدخلات -->
+  <div class="bg-white rounded-3xl shadow-xl p-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+    <h2 class="col-span-2 text-2xl font-extrabold text-green-700">تكاليف البداية</h2>
+    <div><label>عدد الكتاكيت</label><input type="number" v-model.number="f.numChicks" class="input" min="0"></div>
+    <div><label>سعر الكتكوت (دج)</label><input type="number" v-model.number="f.priceChick" class="input" min="0"></div>
+
+    <h2 class="col-span-2 text-2xl font-extrabold text-orange-700 mt-6">تكاليف التشغيل</h2>
+    <div><label>سعر القنطار علف (دج)</label><input type="number" v-model.number="f.feedPrice" class="input" min="0"></div>
+    <div><label>كمية العلف (قنطار)</label><input type="number" v-model.number="f.feedUsed" class="input" min="0"></div>
+    <div><label>ماء + كهرباء + غاز</label><input type="number" v-model.number="f.energy" class="input" min="0"></div>
+    <div><label>دواء + لقاحات</label><input type="number" v-model.number="f.medicine" class="input" min="0"></div>
+    <div><label>الفرشة</label><input type="number" v-model.number="f.bedding" class="input" min="0"></div>
+    <div><label>التنظيف</label><input type="number" v-model.number="f.cleaning" class="input" min="0"></div>
+    <div><label>الإيجار</label><input type="number" v-model.number="f.rent" class="input" min="0"></div>
+
+    <h2 class="col-span-2 text-2xl font-extrabold text-blue-700 mt-6">التسويق</h2>
+    <div><label>تكلفة الشحن للكيلو (دج)</label><input type="number" v-model.number="f.shippingPerKg" class="input" min="0"></div>
+
+    <h2 class="col-span-2 text-2xl font-extrabold text-red-700 mt-6">الدجاج الميت وغير المباع</h2>
+    <div><label>مبكر</label><input type="number" v-model.number="f.deadEarly" class="input" min="0"></div>
+    <div><label>متوسط</label><input type="number" v-model.number="f.deadMid" class="input" min="0"></div>
+    <div><label>متأخر</label><input type="number" v-model.number="f.deadLate" class="input" min="0"></div>
+    <div><label>غير مباع</label><input type="number" v-model.number="f.unsold" class="input" min="0"></div>
+
+    <h2 class="col-span-2 text-2xl font-extrabold text-green-700 mt-6">الإنتاج والبيع</h2>
+    <div><label>الوزن المباع (كغ)</label><input type="number" v-model.number="f.totalWeight" class="input" min="0"></div>
+    <div><label>سعر بيع الكيلو (دج)</label><input type="number" v-model.number="f.sellPrice" class="input" min="0"></div>
+  </div>
+
+  <div class="text-center mt-8">
+    <button @click="calculate" class="bg-green-500 hover:bg-green-600 text-white text-xl font-bold px-10 py-4 rounded-2xl shadow-lg">
+      احسب النتائج
+    </button>
+  </div>
+
+  <!-- النتائج -->
+  <div v-if="show" class="mt-10 grid sm:grid-cols-2 gap-6">
+
+    <div class="bg-green-50 p-6 rounded-3xl shadow">
+      <h3 class="font-extrabold text-xl mb-1">الإيرادات</h3>
+      <p class="text-2xl font-extrabold text-green-700">+ {{ revenue.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="bg-red-50 p-6 rounded-3xl shadow">
+      <h3 class="font-extrabold text-xl mb-1">التكاليف الإجمالية</h3>
+      <p class="text-2xl font-extrabold text-red-600">- {{ totalCost.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="bg-blue-50 p-6 rounded-3xl shadow">
+      <h3 class="font-extrabold text-xl mb-1">تكلفة الشحن</h3>
+      <p class="text-2xl font-extrabold text-red-600">- {{ shippingCost.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="bg-red-100 p-6 rounded-3xl shadow">
+      <h3 class="font-extrabold text-xl mb-1">خسارة الدجاج الميت</h3>
+      <p class="text-2xl font-extrabold text-red-700">- {{ deadCost.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="bg-orange-50 p-6 rounded-3xl shadow">
+      <h3 class="font-extrabold text-xl mb-1">خسارة الغير مباع</h3>
+      <p class="text-2xl font-extrabold text-red-700">- {{ unsoldCost.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="bg-yellow-50 p-6 rounded-3xl shadow">
+      <h3 class="font-extrabold text-xl mb-1">العلف المهدور</h3>
+      <p class="text-2xl font-extrabold text-red-600">- {{ wastedFeedQnt.toFixed(2) }} قنطار / {{ wastedFeedCost.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="bg-teal-50 p-6 rounded-3xl shadow">
+      <h3 class="font-extrabold text-xl mb-1">متوسط وزن المباع</h3>
+      <p class="text-3xl font-extrabold" :class="avgSoldWeightKg >= 2.4 ? 'text-green-700' : avgSoldWeightKg >= 2.0 ? 'text-orange-600' : 'text-red-700'">
+        {{ avgSoldWeightKg.toFixed(2) }} كغ
+      </p>
+    </div>
+
+    <div class="bg-indigo-50 p-6 rounded-3xl shadow col-span-2">
+      <h3 class="font-extrabold text-xl mb-1">استهلاك العلف المتوقع</h3>
+      <p class="text-lg">
+        متوقع: {{ expectedFeedTotalQnt.toFixed(2) }} قنطار  
+        فعلي: {{ f.feedUsed }} قنطار  
+        الفرق: {{ feedDifferenceQnt.toFixed(2) }} قنطار ({{ feedDifferencePercent.toFixed(1) }}%)
+      </p>
+      <p :class="feedStatus.class" class="mt-2 text-lg font-bold">{{ feedStatus.text }}</p>
+    </div>
+
+    <!-- تحليل النفوق حسب المرحلة -->
+    <div class="bg-pink-50 p-6 rounded-3xl shadow col-span-2">
+      <h3 class="font-extrabold text-xl mb-3 text-red-800">تحليل النفوق حسب المرحلة</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="bg-white p-4 rounded-xl shadow">
+          <p class="font-medium">مبكر</p>
+          <p class="text-2xl font-bold">{{ earlyMortalityPct.toFixed(1) }} %</p>
+          <p class="text-sm mt-1" :class="mortalityEarlyClass">{{ mortalityEarlyText }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow">
+          <p class="font-medium">متوسط</p>
+          <p class="text-2xl font-bold">{{ midMortalityPct.toFixed(1) }} %</p>
+          <p class="text-sm mt-1" :class="mortalityMidClass">{{ mortalityMidText }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow">
+          <p class="font-medium">متأخر</p>
+          <p class="text-2xl font-bold">{{ lateMortalityPct.toFixed(1) }} %</p>
+          <p class="text-sm mt-1" :class="mortalityLateClass">{{ mortalityLateText }}</p>
+        </div>
+      </div>
+      <p class="text-center font-bold text-lg" :class="mortalityOverallClass">
+        {{ mortalityOverallText }}
+      </p>
+    </div>
+
+    <!-- تحليل الغير مباع -->
+    <div class="bg-amber-50 p-6 rounded-3xl shadow col-span-2">
+      <h3 class="font-extrabold text-xl mb-3 text-amber-800">تحليل الدجاج الغير مباع</h3>
+      <p class="text-lg mb-2">
+        العدد: {{ f.unsold }} دجاجة  
+        النسبة: {{ unsoldPct.toFixed(1) }} %  
+        متوسط وزن القطيع: {{ avgSoldWeightKg.toFixed(2) }} كغ
+      </p>
+      <p :class="unsoldStatus.class" class="text-lg font-bold">
+        {{ unsoldStatus.text }}
+      </p>
+    </div>
+
+    <div class="bg-purple-50 p-6 rounded-3xl shadow">
+      <h3 class="font-extrabold text-xl mb-1">FCR</h3>
+      <p class="text-2xl font-extrabold" :class="feedPerKg <= 1.8 ? 'text-green-700' : feedPerKg <= 2.0 ? 'text-orange-500' : 'text-red-600'">
+        {{ feedPerKg.toFixed(2) }} كغ/كغ
+      </p>
+    </div>
+
+    <div class="col-span-2 p-8 rounded-3xl shadow-xl text-center" :class="profit >= 0 ? 'bg-green-100' : 'bg-red-100'">
+      <h3 class="text-3xl font-black mb-2">
+        {{ profit >= 0 ? 'الربح النهائي' : 'الخسارة النهائية' }}
+      </h3>
+      <p class="text-4xl font-extrabold">
+        {{ profit.toLocaleString() }} دج
+      </p>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+Vue.createApp({
+  data() {
+    return {
+      show: false,
+      f: {
+        numChicks: 0, priceChick: 0,
+        feedPrice: 0, feedUsed: 0,
+        energy: 0, medicine: 0,
+        bedding: 0, cleaning: 0, rent: 0,
+        shippingPerKg: 0,
+        deadEarly: 0, deadMid: 0, deadLate: 0,
+        unsold: 0,
+        totalWeight: 0, sellPrice: 0,
+        ageAtSlaughter: 42
+      },
+      expectedFeedTable: {
+        35: 3.60, 36: 3.75, 37: 3.90, 38: 4.05, 39: 4.20,
+        40: 4.35, 41: 4.50, 42: 4.65, 43: 4.80, 44: 4.95, 45: 5.10
+      }
+    }
+  },
+  computed: {
+    revenue() { return this.f.totalWeight * this.f.sellPrice },
+    shippingCost() { return this.f.totalWeight * this.f.shippingPerKg },
+    totalCost() {
+      return (this.f.numChicks * this.f.priceChick) +
+             (this.f.feedUsed * this.f.feedPrice) +
+             this.f.energy + this.f.medicine + this.f.bedding + this.f.cleaning + this.f.rent;
+    },
+    deadCost() {
+      const totalDead = this.f.deadEarly + this.f.deadMid + this.f.deadLate;
+      const avgFeed = this.f.feedUsed / (this.f.numChicks || 1);
+      const feedDead = (this.f.deadEarly * 0.2 + this.f.deadMid * 0.5 + this.f.deadLate * 0.85) * avgFeed * this.f.feedPrice;
+      return feedDead + totalDead * this.f.priceChick;
+    },
+    unsoldCost() {
+      const avgFeed = this.f.feedUsed / (this.f.numChicks || 1);
+      return this.f.unsold * avgFeed * 0.85 * this.f.feedPrice + this.f.unsold * this.f.priceChick;
+    },
+    wastedFeedQnt() {
+      const totalDead = this.f.deadEarly + this.f.deadMid + this.f.deadLate;
+      const avgFeed = this.f.feedUsed / (this.f.numChicks || 1);
+      return (totalDead + this.f.unsold) * avgFeed * (0.2 + 0.5 + 0.85) / 3;
+    },
+    wastedFeedCost() { return this.wastedFeedQnt * this.f.feedPrice },
+    profit() { return this.revenue - this.totalCost - this.deadCost - this.unsoldCost - this.shippingCost },
+    feedPerKg() { return this.f.totalWeight > 0 ? (this.f.feedUsed * 100) / this.f.totalWeight : 0 },
+    liveBirds() { return Math.max(0, this.f.numChicks - this.f.deadEarly - this.f.deadMid - this.f.deadLate - this.f.unsold) },
+    avgSoldWeightKg() { return this.liveBirds > 0 ? this.f.totalWeight / this.liveBirds : 0 },
+
+    expectedFeedPerBirdKg() {
+      const age = Math.round(this.f.ageAtSlaughter);
+      if (this.expectedFeedTable[age]) return this.expectedFeedTable[age];
+      return this.expectedFeedTable[42];
+    },
+    expectedFeedTotalKg() { return this.liveBirds * this.expectedFeedPerBirdKg },
+    expectedFeedTotalQnt() { return this.expectedFeedTotalKg / 100 },
+    feedDifferenceQnt() { return this.f.feedUsed - this.expectedFeedTotalQnt },
+    feedDifferencePercent() {
+      if (this.expectedFeedTotalQnt <= 0) return 0;
+      return (this.feedDifferenceQnt / this.expectedFeedTotalQnt) * 100;
+    },
+    feedStatus() {
+      const pct = this.feedDifferencePercent;
+      if (pct >= -5 && pct <= 8) return { text: 'الاستهلاك طبيعي ضمن المعدل', class: 'text-green-700' };
+      if (pct > 8 && pct <= 15) return { text: 'استهلاك أعلى قليلاً – إهدار محتمل', class: 'text-orange-600' };
+      if (pct > 15) return { text: 'استهلاك مرتفع جداً – إهدار كبير أو كفاءة منخفضة', class: 'text-red-700 font-bold' };
+      if (pct < -5 && pct >= -12) return { text: 'استهلاك أقل – نمو بطيء أو مشكلة تسجيل', class: 'text-yellow-600' };
+      if (pct < -12) return { text: 'استهلاك منخفض خطير – خطر على الوزن النهائي', class: 'text-red-700 font-bold' };
+      return { text: 'بيانات غير كافية', class: 'text-gray-500' };
+    },
+
+    // النفوق
+    totalDead() { return this.f.deadEarly + this.f.deadMid + this.f.deadLate },
+    totalMortalityPct() { return this.f.numChicks > 0 ? (this.totalDead / this.f.numChicks) * 100 : 0 },
+    earlyMortalityPct() { return this.f.numChicks > 0 ? (this.f.deadEarly / this.f.numChicks) * 100 : 0 },
+    midMortalityPct() { return this.f.numChicks > 0 ? (this.f.deadMid / this.f.numChicks) * 100 : 0 },
+    lateMortalityPct() { return this.f.numChicks > 0 ? (this.f.deadLate / this.f.numChicks) * 100 : 0 },
+
+    mortalityEarlyText() {
+      const pct = this.earlyMortalityPct;
+      if (pct <= 1.2) return 'ممتاز – طبيعي جداً';
+      if (pct <= 2.0) return 'مقبول – راقب الإعداد الأولي';
+      if (pct > 5) return 'خطر جداً – مشكلة كبيرة في جودة الكتاكيت أو الحرارة الأولية أو عدوى مبكرة';
+      return 'مرتفع – غالباً جودة كتاكيت ضعيفة أو إعداد سيء';
+    },
+    mortalityEarlyClass() {
+      return this.earlyMortalityPct <= 1.2 ? 'text-green-700' : this.earlyMortalityPct <= 2.0 ? 'text-orange-600' : 'text-red-800 font-bold';
+    },
+
+    mortalityMidText() {
+      const pct = this.midMortalityPct;
+      if (pct <= 0.8) return 'جيد – طبيعي';
+      if (pct <= 1.5) return 'متوسط – راقب الأمراض';
+      return 'مرتفع – غالباً أمراض تنفسية أو معوية أو تهوية سيئة';
+    },
+    mortalityMidClass() {
+      return this.midMortalityPct <= 0.8 ? 'text-green-700' : this.midMortalityPct <= 1.5 ? 'text-orange-600' : 'text-red-800 font-bold';
+    },
+
+    mortalityLateText() {
+      const pct = this.lateMortalityPct;
+      if (pct <= 1.2) return 'جيد – طبيعي';
+      if (pct <= 2.2) return 'متوسط – راقب مشاكل القلب والأرجل';
+      return 'مرتفع – غالباً مشاكل قلبية أو حرارة أو كثافة عالية';
+    },
+    mortalityLateClass() {
+      return this.lateMortalityPct <= 1.2 ? 'text-green-700' : this.lateMortalityPct <= 2.2 ? 'text-orange-600' : 'text-red-800 font-bold';
+    },
+
+    mortalityOverallText() {
+      const earlyShare = this.totalDead > 0 ? (this.f.deadEarly / this.totalDead) * 100 : 0;
+      if (this.totalMortalityPct <= 4) return 'إجمالي نفوق منخفض – أداء جيد';
+      if (this.totalMortalityPct > 8) return 'إجمالي نفوق مرتفع – مراجعة شاملة';
+      if (earlyShare > 65) return 'النفوق مركز في البداية – مشكلة في الكتاكيت أو الإعداد';
+      return 'توزيع معقول نسبياً لكن يحتاج تحسين';
+    },
+    mortalityOverallClass() {
+      return this.totalMortalityPct <= 4 ? 'text-green-700' : this.totalMortalityPct <= 8 ? 'text-orange-600' : 'text-red-800 font-bold';
+    },
+
+    // الغير مباع
+    unsoldPct() { return this.f.numChicks > 0 ? (this.f.unsold / this.f.numChicks) * 100 : 0 },
+    unsoldStatus() {
+      const pct = this.unsoldPct;
+      const avgW = this.avgSoldWeightKg;
+      if (pct <= 3) return { text: 'منخفضة جداً – تجانس جيد', class: 'text-green-700' };
+      if (pct <= 6) return { text: 'مقبولة – بعض الطيور ضعيفة (غالباً <2 كغ)', class: 'text-orange-600' };
+      if (pct > 10) return { text: `مرتفعة جداً (\( {pct.toFixed(1)}%) – مشكلة تجانس/صحة/كثافة (وزن غالباً < \){(avgW-0.4).toFixed(1)} كغ)`, class: 'text-red-800 font-bold' };
+      return { text: 'مرتفعة نسبياً – تجانس ضعيف أو مشاكل خفيفة', class: 'text-red-600' };
+    }
+  },
+  methods: {
+    calculate() { this.show = true }
+  }
+}).mount('#app')
+</script>
+
+</body>
+</html>
