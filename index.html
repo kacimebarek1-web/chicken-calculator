@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poule de chair calculator – حاسبة دجاج التسمين الواقعية</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+<style>
+/* خط لطيف */
+body { font-family: 'Tajawal', sans-serif; }
+/* تأثير fade-in للكروت */
+.fade-in { opacity: 0; transform: translateY(15px); animation: fadeInUp 0.5s forwards; }
+@keyframes fadeInUp { to { opacity:1; transform: translateY(0); } }
+</style>
+</head>
+
+<body class="bg-[#FFF8E1] text-gray-800 min-h-screen">
+
+<header class="bg-gradient-to-r from-green-600 to-emerald-600 text-white text-center py-6 shadow-lg">
+  <h1 class="text-4xl font-extrabold flex items-center justify-center gap-3">
+    <i class="fa-solid fa-drumstick-bite"></i> Poule de chair calculator
+  </h1>
+  <p class="mt-2 font-semibold text-lg">حاسبة دجاج التسمين – نسخة واقعية الجزائر 2025–2026</p>
+</header>
+
+<div id="app" class="max-w-5xl mx-auto p-4 py-10">
+
+<div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+
+<!-- Inputs -->
+<div class="p-6 bg-[#FFF8E1] grid sm:grid-cols-2 gap-6">
+
+  <!-- قسم تكاليف البداية -->
+  <h2 class="col-span-2 text-xl font-bold mb-2 text-green-800">تكاليف البداية / Coûts initiaux</h2>
+
+  <div>
+    <label class="block text-sm font-bold mb-1"><i class="fa-solid fa-egg ml-1"></i> عدد الكتاكيت</label>
+    <input type="number" v-model.number="form.numChicks" min="0" class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold mb-1"><i class="fa-solid fa-coins ml-1"></i> سعر الكتكوت (دج)</label>
+    <input type="number" v-model.number="form.priceChick" min="0" class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
+  </div>
+
+  <!-- قسم تكاليف التشغيل -->
+  <h2 class="col-span-2 text-xl font-bold mb-2 text-orange-700 mt-4">تكاليف التشغيل / Coûts opérationnels</h2>
+
+  <div>
+    <label class="block text-sm font-bold mb-1"><i class="fa-solid fa-bag-shopping ml-1"></i> سعر القنطار علف (دج)</label>
+    <input type="number" v-model.number="form.feedPrice" min="0" class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold mb-1"><i class="fa-solid fa-bag-shopping ml-1"></i> كمية العلف المستعمل (قنطار)</label>
+    <input type="number" v-model.number="form.feedUsed" min="0" class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold mb-1"><i class="fa-solid fa-droplet ml-1"></i> ماء + كهرباء + غاز (دج)</label>
+    <input type="number" v-model.number="form.energy" min="0" class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold mb-1"><i class="fa-solid fa-syringe ml-1"></i> الدواء + لقاحات (دج)</label>
+    <input type="number" v-model.number="form.medicine" min="0" class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold mb-1"><i class="fa-solid fa-bed ml-1"></i> الفرشة (دج)</label>
+    <input type="number" v-model.number="form.bedding" min="0" class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold mb-1"><i class="fa-solid fa-broom ml-1"></i> التنظيف (دج)</label>
+    <input type="number" v-model.number="form.cleaning" min="0" class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none">
+  </div>
+
+  <!-- قسم النفوق -->
+  <h2 class="col-span-2 text-xl font-bold mb-2 text-red-700 mt-4">النفوق / Mortalité</h2>
+
+  <div>
+    <label class="block text-sm font-bold mb-1">دجاج ميت مبكر (0–14 يوم)</label>
+    <input type="number" v-model.number="form.deadEarly" min="0" class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-red-500 outline-none">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold mb-1">دجاج ميت متوسط (15–28 يوم)</label>
+    <input type="number" v-model.number="form.deadMid" min="0" class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-red-500 outline-none">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold mb-1">دجاج ميت متأخر (29+ يوم)</label>
+    <input type="number" v-model.number="form.deadLate" min="0" class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-red-500 outline-none">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold mb-1">دجاج غير مباع</label>
+    <input type="number" v-model.number="form.unsold" min="0" class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-yellow-500 outline-none">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold mb-1">الوزن المباع الكلي (كغ)</label>
+    <input type="number" v-model.number="form.totalWeight" min="0" class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold mb-1">سعر بيع الكيلو (دج)</label>
+    <input type="number" v-model.number="form.sellPrice" min="0" class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold mb-1">عمولة الكيلو (دج)</label>
+    <input type="number" v-model.number="form.commission" min="0" class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
+  </div>
+
+</div>
+
+<!-- Buttons -->
+<div class="p-6 border-t flex gap-4">
+  <button @click="calculate" class="flex-1 bg-orange-400 hover:bg-orange-500 text-white py-3 rounded-2xl font-bold transition transform hover:scale-[1.02]">
+    <i class="fa-solid fa-calculator ml-1"></i> احسب / Calculer
+  </button>
+  <button @click="resetForm" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-2xl font-bold transition transform hover:scale-[1.02]">
+    <i class="fa-solid fa-arrows-rotate ml-1"></i> إعادة تعيين / Réinitialiser
+  </button>
+</div>
+
+<!-- Error -->
+<div v-if="error" class="p-4 text-center text-red-600 font-bold">
+  {{ error }}
+</div>
+
+<!-- Results -->
+<div v-if="result" class="p-6 border-t space-y-5 fade-in">
+
+  <!-- Profit -->
+  <div :class="result.profit>=0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+       class="rounded-2xl p-6 text-center font-extrabold text-3xl shadow-lg transition-all">
+    <i class="fa-solid fa-drumstick-bite text-5xl mb-2 block"></i>
+    {{ result.profit>=0 ? 'الربح الصافي الحقيقي' : 'الخسارة الصافية الحقيقية' }}
+    <div class="text-5xl mt-2">{{ formatMoney(result.profit) }}</div>
+  </div>
+
+  <!-- Details -->
+  <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+
+    <div class="border rounded-2xl p-4 text-center shadow-sm fade-in">
+      <p class="text-sm text-gray-500">إجمالي الإيرادات / Revenus</p>
+      <p class="text-xl font-bold text-green-700">{{ formatMoney(result.income) }}</p>
+    </div>
+
+    <div class="border rounded-2xl p-4 text-center shadow-sm fade-in">
+      <p class="text-sm text-gray-500">إجمالي التكاليف / Coûts</p>
+      <p class="text-xl font-bold text-red-600">{{ formatMoney(result.totalCosts) }}</p>
+    </div>
+
+    <div class="border rounded-2xl p-4 text-center shadow-sm fade-in">
+      <p class="text-sm text-gray-500">خسارة الدجاج الميت + غير المباع / Perte Poulets morts + invendus</p>
+      <p class="text-xl font-bold text-orange-600">{{ formatMoney(result.lossDead) }}</p>
+      <p class="text-xs text-gray-600">قيمة محتملة إذا بيع لاحقًا ≈ 70%</p>
+    </div>
+
+    <div class="border rounded-2xl p-4 text-center shadow-sm fade-in">
+      <p class="text-sm text-gray-500">نسبة النفوق / Taux mortalité</p>
+      <p class="text-xl font-bold">{{ result.mortality }}%</p>
+    </div>
+
+    <div class="border rounded-2xl p-4 text-center shadow-sm fade-in">
+      <p class="text-sm text-gray-500">متوسط وزن الدجاجة المباع / Poids moyen</p>
+      <p class="text-xl font-bold">{{ result.avgWeight }} كغ</p>
+    </div>
+
+    <div class="border rounded-2xl p-4 text-center shadow-sm fade-in">
+      <p class="text-sm text-gray-500">معامل التحويل (FCR)</p>
+      <p class="text-xl font-bold"
+         :class="result.fcr<=1.8?'text-green-600':result.fcr<=2.1?'text-orange-500':'text-red-600'">
+        {{ result.fcr }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Advice -->
+  <div v-if="advice.length" class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 rounded-xl fade-in">
+    <p class="font-bold mb-2">نصائح / Conseils:</p>
+    <ul class="list-disc list-inside">
+      <li v-for="(a,i) in advice" :key="i">{{ a }}</li>
+    </ul>
+  </div>
+
+</div>
+
+</div>
+
+<footer class="text-center text-sm text-gray-500 mt-10 mb-6">
+  تطوير &copy; <b>Kaci Mebarek</b> • 2025–2026
+</footer>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script>
+const { createApp, ref } = Vue;
+
+createApp({
+setup(){
+
+  const form = ref({
+    numChicks:0, priceChick:0,
+    feedPrice:0, feedUsed:0,
+    energy:0, medicine:0,
+    bedding:0, cleaning:0,
+    deadEarly:0, deadMid:0, deadLate:0,
+    unsold:0, totalWeight:0,
+    sellPrice:0, commission:0
+  });
+
+  const result = ref(null);
+  const error = ref(null);
+  const advice = ref([]);
+
+  const feedTable = [
+    {day:7, percent:0.06}, {day:14, percent:0.28}, {day:21, percent:0.32},
+    {day:28, percent:0.55}, {day:35, percent:0.75}, {day:42, percent:1}
+  ];
+
+  const adviceRules = [
+    {condition:r=>r.fcr>2.3, text:"FCR مرتفع: تحقق من جودة العلف، التهوية، درجة الحرارة، أو كثافة التربية."},
+    {condition:r=>r.mortality>12, text:"نفوق عالي: راجع التحصين، النظافة، جودة الكتاكيت، أو مشاكل المياه."},
+    {condition:r=>r.deadLate/(r.totalDead||1)*100>5, text:"نفوق متأخر كبير: ركز على مكافحة الكوكسيديا والأمراض التنفسية في الأسبوع 4–6."},
+    {condition:r=>r.unsoldPercent>5, text:"غير مباع مرتفع: حاول تسويقهم بسرعة أو تقليل الكثافة في الدورة القادمة."},
+    {condition:r=>r.profit>0 && r.fcr<=1.9, text:"دورة ناجحة جدًا! حافظ على نفس الإدارة."}
+  ];
+
+  function resetForm(){
+    for(let k in form.value) form.value[k]=0;
+    result.value=null;
+    advice.value=[];
+    error.value=null;
+  }
+
+  function calculate(){
+    error.value=null;
+    advice.value=[];
+
+    const totalChicks = form.value.numChicks;
+    if(totalChicks<=0 || form.value.totalWeight<=0){
+      error.value="تحقق من عدد الكتاكيت والوزن المباع";
+      return;
+    }
+
+    const deadEarly = form.value.deadEarly;
+    const deadMid = form.value.deadMid;
+    const deadLate = form.value.deadLate;
+    const totalDead = deadEarly+deadMid+deadLate;
+    const unsold = form.value.unsold;
+    const sold = totalChicks - totalDead - unsold;
+    if(sold<=0){ error.value="لا يوجد دجاج مباع"; return; }
+
+    const income = form.value.totalWeight*form.value.sellPrice;
+    const totalCosts =
+      (totalChicks*form.value.priceChick) +
+      (form.value.feedUsed*form.value.feedPrice) +
+      form.value.commission*form.value.totalWeight +
+      form.value.medicine + form.value.energy + form.value.bedding + form.value.cleaning;
+
+    // خسارة النافق حسب العمر
+    const feedPerBird = form.value.feedUsed / totalChicks;
+    const wastedFeedEarly = deadEarly * feedPerBird * 0.2;
+    const wastedFeedMid = deadMid * feedPerBird * 0.55;
+    const wastedFeedLate = deadLate * feedPerBird * 0.85;
+    const feedLossDead = (wastedFeedEarly + wastedFeedMid + wastedFeedLate)*form.value.feedPrice;
+
+    const chickLoss = totalDead * form.value.priceChick;
+
+    // خسارة الغير مباع
+    const wastedFeedUnsold = unsold*feedPerBird*0.85*form.value.feedPrice;
+    const chickLossUnsold = unsold*form.value.priceChick*0.5; // خسارة فرصة
+    const lossDead = feedLossDead + chickLoss + wastedFeedUnsold + chickLossUnsold;
+
+    const profit = income - totalCosts - lossDead;
+
+    const avgWeight = (form.value.totalWeight/sold).toFixed(3);
+    const fcr = ((form.value.feedUsed*100)/form.value.totalWeight).toFixed(2);
+    const mortality = ((totalDead+unsold)/totalChicks*100).toFixed(2);
+    const unsoldPercent = (unsold/totalChicks*100).toFixed(2);
+
+    result.value = {income, totalCosts, lossDead, profit, avgWeight, fcr, mortality, totalDead, unsoldPercent};
+
+    // نصائح
+    adviceRules.forEach(a=>{
+      if(a.condition(result.value)) advice.value.push(a.text);
+    });
+  }
+
+  function formatMoney(v){
+    if(isNaN(v)) return '—';
+    return Math.round(v).toLocaleString('fr-DZ')+' دج';
+  }
+
+  return {form,result,error,advice,calculate,resetForm,formatMoney};
+}
+}).mount('#app');
+</script>
+
+</body>
+</html>
