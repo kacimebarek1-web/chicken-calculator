@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poule de chair calculator</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body{font-family:'Tajawal',sans-serif;font-size:18px}
+.input{width:100%;padding:16px;border-radius:16px;border:1px solid #ddd;font-size:1.1rem}
+.section{background:white;border-radius:24px;padding:20px;box-shadow:0 10px 25px rgba(0,0,0,.08)}
+.fade{animation:fade .5s ease}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+</style>
+</head>
+
+<body class="bg-[#FFFDF5]">
+<div id="app" class="max-w-5xl mx-auto p-6">
+
+<h1 class="text-4xl font-black text-center text-green-800 mb-8">
+Poule de chair calculator
+</h1>
+
+<div class="space-y-4">
+
+<div class="section">
+<button @click="toggle('start')" class="font-black text-xl text-green-700">تكاليف البداية</button>
+<div v-if="open.start" class="mt-4 grid sm:grid-cols-2 gap-4">
+<input class="input" placeholder="عدد الكتاكيت" v-model.number="f.numChicks">
+<input class="input" placeholder="سعر الكتكوت (دج)" v-model.number="f.priceChick">
+</div>
+</div>
+
+<div class="section">
+<button @click="toggle('op')" class="font-black text-xl text-orange-700">تكاليف التشغيل</button>
+<div v-if="open.op" class="mt-4 grid sm:grid-cols-2 gap-4">
+<input class="input" placeholder="سعر القنطار علف" v-model.number="f.feedPrice">
+<input class="input" placeholder="كمية العلف (قنطار)" v-model.number="f.feedUsed">
+<input class="input" placeholder="ماء + كهرباء + غاز" v-model.number="f.energy">
+<input class="input" placeholder="دواء + لقاحات" v-model.number="f.medicine">
+<input class="input" placeholder="الفرشة" v-model.number="f.bedding">
+<input class="input" placeholder="التنظيف" v-model.number="f.cleaning">
+<input class="input" placeholder="الإيجار" v-model.number="f.rent">
+</div>
+</div>
+
+<div class="section">
+<button @click="toggle('mort')" class="font-black text-xl text-red-700">الدجاج الميت وغير المباع</button>
+<div v-if="open.mort" class="mt-4 grid sm:grid-cols-2 gap-4">
+<input class="input" placeholder="ميت مبكر" v-model.number="f.deadEarly">
+<input class="input" placeholder="ميت متوسط" v-model.number="f.deadMid">
+<input class="input" placeholder="ميت متأخر" v-model.number="f.deadLate">
+<input class="input" placeholder="غير مباع" v-model.number="f.unsold">
+</div>
+</div>
+
+<div class="section">
+<button @click="toggle('prod')" class="font-black text-xl text-blue-700">الإنتاج والبيع</button>
+<div v-if="open.prod" class="mt-4 grid sm:grid-cols-2 gap-4">
+<input class="input" placeholder="الوزن المباع (كغ)" v-model.number="f.totalWeight">
+<input class="input" placeholder="سعر بيع الكيلو" v-model.number="f.sellPrice">
+<input class="input" placeholder="تكلفة الشحن للكيلو" v-model.number="f.shippingPerKg">
+</div>
+</div>
+
+</div>
+
+<button @click="calculate"
+class="block mx-auto mt-8 bg-green-600 hover:bg-green-700 text-white font-black px-10 py-4 rounded-2xl">
+احسب النتائج
+</button>
+
+<div v-if="show" class="mt-10 space-y-6 fade">
+
+<p class="text-center font-bold">
+إجمالي النفوق + غير المباع:
+{{ deadTotal + f.unsold }} من {{ f.numChicks }}
+({{ mortalityRate }}%)
+</p>
+
+<div class="grid sm:grid-cols-2 gap-4">
+<div class="section bg-green-50">الإيرادات: {{ revenue.toLocaleString('fr-DZ') }} دج</div>
+<div class="section bg-red-50">إجمالي التكاليف: {{ totalCost.toLocaleString('fr-DZ') }} دج</div>
+<div class="section bg-orange-50">خسارة العلف: {{ feedLossDead.toLocaleString('fr-DZ') }} دج</div>
+<div class="section bg-yellow-50">خسارة تشغيل جزئية: {{ otherLossDead.toLocaleString('fr-DZ') }} دج</div>
+<div class="section bg-blue-50">FCR: {{ fcr }}</div>
+</div>
+
+<div class="section text-center"
+:class="profit>=0?'bg-green-100':'bg-red-100'">
+<h2 class="text-3xl font-black">
+{{ profit>=0?'الربح الصافي':'الخسارة الصافية' }}
+</h2>
+<p class="text-4xl font-extrabold">{{ profit.toLocaleString('fr-DZ') }} دج</p>
+</div>
+
+<div class="section">
+<h3 class="font-black mb-2">نصائح وتحليل</h3>
+<ul class="list-disc pr-6 space-y-1">
+<li v-for="a in advice" :key="a">{{ a }}</li>
+</ul>
+</div>
+
+</div>
+
+<p class="text-center text-sm text-gray-500 mt-10">
+Developed by <b>Kaci Mebarek</b> • Poultry Analysis Tool
+</p>
+
+</div>
+
+<script>
+Vue.createApp({
+data(){
+return{
+show:false,
+open:{start:true,op:false,mort:false,prod:false},
+f:{
+numChicks:0,priceChick:0,feedPrice:0,feedUsed:0,
+energy:0,medicine:0,bedding:0,cleaning:0,rent:0,
+deadEarly:0,deadMid:0,deadLate:0,unsold:0,
+totalWeight:0,sellPrice:0,shippingPerKg:0
+}
+}
+},
+computed:{
+deadTotal(){return this.f.deadEarly+this.f.deadMid+this.f.deadLate},
+mortalityRate(){
+if(!this.f.numChicks)return 0
+return (((this.deadTotal+this.f.unsold)/this.f.numChicks)*100).toFixed(1)
+},
+avgWeight(){
+const sold=this.f.numChicks-this.deadTotal-this.f.unsold
+return sold>0?this.f.totalWeight/sold:0
+},
+feedLossDead(){
+const perBirdFeed=(this.f.feedUsed*100)/this.f.numChicks
+const lossBirds=
+this.f.deadEarly*0.2+
+this.f.deadMid*0.5+
+(this.f.deadLate+this.f.unsold)*0.85
+return lossBirds*perBirdFeed*(this.f.feedPrice/100)
+},
+otherLossDead(){
+const base=this.f.energy+this.f.medicine+this.f.bedding
+const lossRate=
+(this.f.deadEarly*0.2+
+this.f.deadMid*0.5+
+(this.f.deadLate+this.f.unsold)*0.8)
+/this.f.numChicks
+return base*lossRate
+},
+revenue(){return this.f.totalWeight*this.f.sellPrice},
+totalCost(){
+return this.f.numChicks*this.f.priceChick+
+this.f.feedUsed*this.f.feedPrice+
+this.f.energy+this.f.medicine+
+this.f.bedding+this.f.cleaning+
+this.f.rent+
+this.f.totalWeight*this.f.shippingPerKg+
+this.feedLossDead+
+this.otherLossDead
+},
+fcr(){
+const totalProd=this.f.totalWeight+(this.f.unsold*this.avgWeight)
+return totalProd>0?((this.f.feedUsed*100)/totalProd).toFixed(2):0
+},
+profit(){return this.revenue-this.totalCost},
+advice(){
+let a=[]
+if(this.f.deadLate/this.f.numChicks>0.05)a.push('نفوق متأخر مرتفع: راقب الكوكسيديا والتهوية.')
+if(this.fcr>2.4)a.push('FCR ضعيف: راجع جودة العلف والكثافة.')
+if(this.otherLossDead>this.totalCost*0.1)a.push('خسائر تشغيل مرتفعة بسبب النفوق.')
+if(this.profit>0&&this.fcr<1.9)a.push('دورة ممتازة، إدارة ناجحة.')
+return a
+}
+},
+methods:{
+toggle(s){this.open[s]=!this.open[s]},
+calculate(){this.show=true}
+}
+}).mount('#app')
+</script>
+</body>
+</html>
