@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حاسبة تسمين الدجاج اللاحم</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      font-family: 'Tajawal', system-ui, sans-serif;
+      background: linear-gradient(135deg, #fefce8, #ffffff, #ecfdf5);
+      min-height: 100vh;
+    }
+
+    .input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid #d1d5db;
+      font-size: 1.1rem;
+      background: #ffffff;
+      transition: all 0.2s;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: #16a34a;
+      box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.15);
+      background: #f9fafb;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+      transition: transform 0.25s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    h1 {
+      font-size: 3.8rem;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    @media (max-width: 640px) {
+      h1 {
+        font-size: 2.8rem;
+      }
+    }
+
+    .section-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body class="antialiased">
+
+<div id="app" class="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+
+  <!-- العنوان الرئيسي -->
+  <h1 class="font-black text-center mb-6 text-green-800 drop-shadow-sm">
+    <i class="fa-solid fa-drumstick-bite text-green-600 ml-3"></i>
+    حاسبة تسمين الدجاج اللاحم
+  </h1>
+
+  <p class="text-center text-lg text-gray-700 mb-10">
+    حساب اقتصادي دقيق • Cobb 500 / Ross 308 / Arbor Acres
+  </p>
+
+  <!-- نموذج الإدخال -->
+  <div class="card p-6 sm:p-8 mb-10">
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
+
+      <!-- تكاليف البداية -->
+      <div class="col-span-2">
+        <h2 class="section-title text-green-700 mb-4 flex items-center">
+          <i class="fa-solid fa-coins mr-3 text-green-600"></i>
+          تكاليف البداية
+        </h2>
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">عدد الكتاكيت</label>
+        <input type="number" v-model.number="f.numChicks" class="input" placeholder="مثال: 1000">
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">سعر الكتكوت الواحد (دج)</label>
+        <input type="number" v-model.number="f.priceChick" class="input" placeholder="مثال: 80–100">
+      </div>
+
+      <!-- تكاليف التشغيل -->
+      <div class="col-span-2 mt-6">
+        <h2 class="section-title text-orange-700 mb-4 flex items-center">
+          <i class="fa-solid fa-gears mr-3 text-orange-600"></i>
+          تكاليف التشغيل
+        </h2>
+      </div>
+
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">سعر القنطار علف (دج)</label>
+        <input type="number" v-model.number="f.feedPrice" class="input">
+      </div>
+
+      <div class="flex items-center gap-3">
+        <input type="checkbox" v-model="autoFeed" id="autoFeed" class="w-5 h-5 text-green-600">
+        <label for="autoFeed" class="text-gray-700 font-medium">حساب كمية العلف تلقائيًا حسب العمر</label>
+      </div>
+
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">كمية العلف (قنطار) — يدوي</label>
+        <input type="number" v-model.number="f.feedUsed" class="input" :disabled="autoFeed">
+      </div>
+
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">ماء + كهرباء + تدفئة (دج)</label>
+        <input type="number" v-model.number="f.energy" class="input">
+      </div>
+
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">أدوية + لقاحات + فيتامينات (دج)</label>
+        <input type="number" v-model.number="f.medicine" class="input">
+      </div>
+
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">فرشة / نشارة (دج)</label>
+        <input type="number" v-model.number="f.bedding" class="input">
+      </div>
+
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">تنظيف + عمالة (دج)</label>
+        <input type="number" v-model.number="f.cleaning" class="input">
+      </div>
+
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">إيجار الحظيرة (دج)</label>
+        <input type="number" v-model.number="f.rent" class="input">
+      </div>
+
+      <!-- التسويق -->
+      <div class="col-span-2 mt-6">
+        <h2 class="section-title text-blue-700 mb-4 flex items-center">
+          <i class="fa-solid fa-truck-fast mr-3 text-blue-600"></i>
+          النقل والتسويق
+        </h2>
+      </div>
+      <div class="sm:col-span-2">
+        <label class="block text-gray-700 font-medium mb-2">تكلفة النقل / الشحن لكل كيلو (دج)</label>
+        <input type="number" v-model.number="f.shippingPerKg" class="input">
+      </div>
+
+      <!-- النفوق -->
+      <div class="col-span-2 mt-6">
+        <h2 class="section-title text-red-700 mb-4 flex items-center">
+          <i class="fa-solid fa-skull-crossbones mr-3 text-red-600"></i>
+          النفوق والخسائر
+        </h2>
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">نفوق مبكر (أول 7–10 أيام)</label>
+        <input type="number" v-model.number="f.deadEarly" class="input">
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">نفوق متوسط</label>
+        <input type="number" v-model.number="f.deadMid" class="input">
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">نفوق متأخر / قرب الذبح</label>
+        <input type="number" v-model.number="f.deadLate" class="input">
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">غير مباع / مرفوض</label>
+        <input type="number" v-model.number="f.unsold" class="input">
+      </div>
+
+      <!-- الإنتاج -->
+      <div class="col-span-2 mt-6">
+        <h2 class="section-title text-emerald-700 mb-4 flex items-center">
+          <i class="fa-solid fa-weight-hanging mr-3 text-emerald-600"></i>
+          الإنتاج والأداء
+        </h2>
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">الوزن الإجمالي المباع (كغ)</label>
+        <input type="number" step="0.1" v-model.number="f.totalWeight" class="input">
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">سعر البيع للكيلو (دج/كغ)</label>
+        <input type="number" v-model.number="f.sellPrice" class="input">
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">عمر الذبح (يوم)</label>
+        <input type="number" v-model.number="f.ageAtSlaughter" class="input">
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- زر الحساب -->
+  <div class="text-center mb-12">
+    <button 
+      @click="calculate" 
+      class="bg-green-600 hover:bg-green-700 text-white text-xl font-bold px-12 py-5 rounded-xl shadow-lg transition-all transform hover:scale-105"
+    >
+      <i class="fa-solid fa-calculator mr-3"></i>
+      احسب النتيجة
+    </button>
+  </div>
+
+  <!-- النتائج -->
+  <div v-if="show" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    <div class="card p-6 text-center">
+      <h3 class="text-xl font-bold text-green-700 mb-2">الإيرادات</h3>
+      <p class="text-4xl font-black text-green-800">{{ revenue.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="card p-6 text-center">
+      <h3 class="text-xl font-bold text-red-700 mb-2">التكاليف الكلية</h3>
+      <p class="text-4xl font-black text-red-800">{{ totalCost.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="card p-6 text-center lg:col-span-1 sm:col-span-2">
+      <h3 class="text-xl font-bold text-purple-700 mb-2">معامل التحويل الغذائي FCR</h3>
+      <p class="text-4xl font-black text-purple-800">{{ fcr.toFixed(2) }}</p>
+      <p class="text-sm text-gray-600 mt-1">كغ علف لإنتاج 1 كغ لحم</p>
+    </div>
+
+    <div class="card p-8 text-center col-span-full" :class="{'bg-green-50 border-2 border-green-300': profit >= 0, 'bg-red-50 border-2 border-red-300': profit < 0}">
+      <h3 class="text-3xl font-black mb-3" :class="{'text-green-700': profit >= 0, 'text-red-700': profit < 0}">
+        {{ profit >= 0 ? 'الربح الصافي' : 'الخسارة' }}
+      </h3>
+      <p class="text-5xl font-extrabold" :class="{'text-green-800': profit >= 0, 'text-red-800': profit < 0}">
+        {{ profit.toLocaleString() }} دج
+      </p>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+Vue.createApp({
+  data() {
+    return {
+      show: false,
+      autoFeed: true,
+      f: {
+        numChicks: 1000,
+        priceChick: 90,
+        feedPrice: 6800,
+        feedUsed: 0,
+        energy: 18000,
+        medicine: 9000,
+        bedding: 6000,
+        cleaning: 8000,
+        rent: 25000,
+        shippingPerKg: 10,
+        deadEarly: 25,
+        deadMid: 35,
+        deadLate: 50,
+        unsold: 15,
+        totalWeight: 2350,
+        sellPrice: 520,
+        ageAtSlaughter: 42
+      }
+    }
+  },
+
+  computed: {
+    // تقدير كمية العلف للطائر الواحد (كغ) — تقريبي 2024–2025
+    estimatedFeedPerBird() {
+      const d = this.f.ageAtSlaughter;
+      if (d <= 35) return 3.95 + (d-30)*0.08;
+      if (d <= 42) return 4.45 + (d-35)*0.09;
+      return 4.85 + (d-42)*0.10;
+    },
+
+    totalFeedKg() {
+      if (!this.autoFeed) return (this.f.feedUsed || 0) * 100;
+      
+      // نخصم جزء من النفوق المبكر (استهلاك قليل)
+      const aliveMostTime = this.f.numChicks - (this.f.deadEarly * 0.4);
+      return aliveMostTime * this.estimatedFeedPerBird;
+    },
+
+    totalCost() {
+      const chicksCost = this.f.numChicks * this.f.priceChick;
+      const feedCost   = (this.totalFeedKg / 100) * this.f.feedPrice;
+      const transport  = (this.f.totalWeight || 0) * this.f.shippingPerKg;
+
+      return chicksCost + feedCost +
+             (this.f.energy  || 0) +
+             (this.f.medicine || 0) +
+             (this.f.bedding  || 0) +
+             (this.f.cleaning || 0) +
+             (this.f.rent     || 0) +
+             transport;
+    },
+
+    revenue() {
+      return (this.f.totalWeight || 0) * (this.f.sellPrice || 0);
+    },
+
+    profit() {
+      return this.revenue - this.totalCost;
+    },
+
+    fcr() {
+      return this.f.totalWeight > 0 ? this.totalFeedKg / this.f.totalWeight : 0;
+    }
+  },
+
+  methods: {
+    calculate() {
+      this.show = true;
+    }
+  }
+}).mount('#app')
+</script>
+
+</body>
+</html>
