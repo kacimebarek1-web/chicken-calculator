@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>حاسبة دجاج اللحم</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { font-family: 'Tajawal', sans-serif; background-color:#FFFDF5; }
+.input { width:100%; padding:14px; border-radius:14px; border:1px solid #ddd; font-size:1.1rem; }
+h1,h2,h3 { line-height:1.3; }
+</style>
+</head>
+<body>
+
+<div id="app" class="max-w-6xl mx-auto p-6">
+
+  <h1 class="text-5xl font-black text-center mb-8 text-green-800">
+    حاسبة دجاج اللحم (Poule de chair)
+  </h1>
+
+  <div class="bg-white rounded-3xl shadow-xl p-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+    <h2 class="col-span-2 text-2xl font-extrabold text-green-700">تكاليف البداية</h2>
+    <div>
+      <label>عدد الكتاكيت</label>
+      <input type="number" v-model.number="f.numChicks" class="input">
+    </div>
+    <div>
+      <label>سعر الكتكوت (دج)</label>
+      <input type="number" v-model.number="f.priceChick" class="input">
+    </div>
+
+    <h2 class="col-span-2 text-2xl font-extrabold text-orange-700 mt-6">تكاليف التشغيل</h2>
+    <div>
+      <label>سعر القنطار علف (دج)</label>
+      <input type="number" v-model.number="f.feedPrice" class="input">
+    </div>
+    <div>
+      <label>كمية العلف المستهلكة (قنطار)</label>
+      <input type="number" v-model.number="f.feedUsed" class="input">
+    </div>
+    <div>
+      <label>ماء + كهرباء + غاز</label>
+      <input type="number" v-model.number="f.energy" class="input">
+    </div>
+    <div>
+      <label>أدوية + لقاحات</label>
+      <input type="number" v-model.number="f.medicine" class="input">
+    </div>
+    <div>
+      <label>الفرشة</label>
+      <input type="number" v-model.number="f.bedding" class="input">
+    </div>
+    <div>
+      <label>التنظيف</label>
+      <input type="number" v-model.number="f.cleaning" class="input">
+    </div>
+    <div>
+      <label>الإيجار</label>
+      <input type="number" v-model.number="f.rent" class="input">
+    </div>
+
+    <h2 class="col-span-2 text-2xl font-extrabold text-blue-700 mt-6">التسويق والبيع</h2>
+    <div>
+      <label>خصم النقل / العمولة للكيلو (دج)</label>
+      <input type="number" step="0.1" v-model.number="f.deductionPerKg" class="input" placeholder="غالباً 15–30 دج">
+    </div>
+
+    <h2 class="col-span-2 text-2xl font-extrabold text-red-700 mt-6">الخسائر</h2>
+    <div>
+      <label>موت مبكر</label>
+      <input type="number" v-model.number="f.deadEarly" class="input">
+    </div>
+    <div>
+      <label>موت متوسط</label>
+      <input type="number" v-model.number="f.deadMid" class="input">
+    </div>
+    <div>
+      <label>موت متأخر</label>
+      <input type="number" v-model.number="f.deadLate" class="input">
+    </div>
+    <div>
+      <label>غير مباع</label>
+      <input type="number" v-model.number="f.unsold" class="input">
+    </div>
+
+    <h2 class="col-span-2 text-2xl font-extrabold text-green-700 mt-6">الإنتاج والبيع</h2>
+    <div>
+      <label>الوزن المباع الفعلي (كغ)</label>
+      <input type="number" step="0.1" v-model.number="f.totalWeight" class="input">
+    </div>
+    <div>
+      <label>سعر البيع الصافي للكيلو (دج) ← اللي يدخل جيبك</label>
+      <input type="number" v-model.number="f.sellPriceNet" class="input" placeholder="مثال: 250 دج">
+    </div>
+
+  </div>
+
+  <div class="text-center mt-8">
+    <button @click="calculate"
+      class="bg-green-600 hover:bg-green-700 text-white text-xl font-bold px-12 py-5 rounded-2xl shadow-lg">
+      احسب النتائج
+    </button>
+  </div>
+
+  <div v-if="show" class="mt-10 grid sm:grid-cols-2 gap-6">
+
+    <div class="bg-green-50 p-6 rounded-3xl shadow">
+      <h3 class="font-extrabold text-xl mb-1">الإيرادات الإجمالية قبل الخصم</h3>
+      <p class="text-2xl font-extrabold text-green-700">+ {{ grossRevenue.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="bg-blue-50 p-6 rounded-3xl shadow">
+      <h3 class="font-extrabold text-xl mb-1">خصم النقل / العمولة الكلي</h3>
+      <p class="text-2xl font-extrabold text-red-600">- {{ deductionTotal.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="bg-green-100 p-6 rounded-3xl shadow col-span-2">
+      <h3 class="font-extrabold text-xl mb-1">الإيراد الصافي (اللي يدخل جيبك فعلياً)</h3>
+      <p class="text-3xl font-extrabold text-green-800">+ {{ netRevenue.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="bg-red-50 p-6 rounded-3xl shadow">
+      <h3 class="font-extrabold text-xl mb-1">إجمالي التكاليف التشغيلية</h3>
+      <p class="text-2xl font-extrabold text-red-600">- {{ operatingCost.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="bg-red-100 p-6 rounded-3xl shadow">
+      <h3 class="font-extrabold text-xl mb-1">خسارة الدجاج الميت</h3>
+      <p class="text-2xl font-extrabold text-red-600">- {{ deadCost.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="bg-orange-50 p-6 rounded-3xl shadow">
+      <h3 class="font-extrabold text-xl mb-1">خسارة الغير مباع</h3>
+      <p class="text-2xl font-extrabold text-red-600">- {{ unsoldCost.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="bg-purple-50 p-6 rounded-3xl shadow">
+      <h3 class="font-extrabold text-xl mb-1">FCR (كفاءة تحويل العلف)</h3>
+      <p class="text-2xl font-extrabold"
+         :class="feedPerKg <= 2.0 ? 'text-green-700' : feedPerKg <= 2.5 ? 'text-orange-600' : 'text-red-600'">
+         {{ feedPerKg.toFixed(2) }} كغ علف / كغ لحم
+      </p>
+    </div>
+
+    <div class="col-span-2 p-8 rounded-3xl shadow-xl text-center text-4xl font-black"
+         :class="netProfit >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+      {{ netProfit >= 0 ? 'الربح الصافي' : 'الخسارة الصافية' }}
+      <br>
+      {{ netProfit.toLocaleString() }} دج
+    </div>
+
+  </div>
+
+  <p class="text-center text-sm text-gray-600 mt-12">
+    تم تعديل الحاسبة لتكون أقرب للواقع التجاري • بواسطة Kaci Mebarek (مع تعديلات إضافية)
+  </p>
+
+</div>
+
+<script>
+Vue.createApp({
+  data() {
+    return {
+      show: false,
+      f: {
+        numChicks: 0,
+        priceChick: 0,
+        feedPrice: 0,
+        feedUsed: 0,
+        energy: 0,
+        medicine: 0,
+        bedding: 0,
+        cleaning: 0,
+        rent: 0,
+        deductionPerKg: 0,          // خصم النقل / العمولة للكيلو
+        deadEarly: 0,
+        deadMid: 0,
+        deadLate: 0,
+        unsold: 0,
+        totalWeight: 0,
+        sellPriceNet: 0             // السعر الصافي الذي يدخل جيبك
+      }
+    }
+  },
+  computed: {
+    grossRevenue() {
+      return this.f.totalWeight * (this.f.sellPriceNet + this.f.deductionPerKg)
+    },
+    deductionTotal() {
+      return this.f.totalWeight * this.f.deductionPerKg
+    },
+    netRevenue() {
+      return this.f.totalWeight * this.f.sellPriceNet
+    },
+    operatingCost() {
+      const chicks = this.f.numChicks * this.f.priceChick
+      const feed   = this.f.feedUsed * this.f.feedPrice
+      return chicks + feed + this.f.energy + this.f.medicine + this.f.bedding + this.f.cleaning + this.f.rent
+    },
+    deadCost() {
+      const totalDead = this.f.deadEarly + this.f.deadMid + this.f.deadLate
+      const avgFeedPerBird = this.f.feedUsed / this.f.numChicks
+      const feedDead = (this.f.deadEarly * 0.20 + this.f.deadMid * 0.50 + this.f.deadLate * 0.85) * avgFeedPerBird * this.f.feedPrice
+      const chickDead = totalDead * this.f.priceChick
+      return feedDead + chickDead
+    },
+    unsoldCost() {
+      const avgFeedPerBird = this.f.feedUsed / this.f.numChicks
+      const feedUnsold = this.f.unsold * avgFeedPerBird * 0.85 * this.f.feedPrice
+      const chickUnsold = this.f.unsold * this.f.priceChick
+      return feedUnsold + chickUnsold
+    },
+    netProfit() {
+      return this.netRevenue - this.operatingCost - this.deadCost - this.unsoldCost
+    },
+    feedPerKg() {
+      if (this.f.totalWeight <= 0) return 0
+      return (this.f.feedUsed * 100) / this.f.totalWeight
+    }
+  },
+  methods: {
+    calculate() {
+      this.show = true
+    }
+  }
+}).mount('#app')
+</script>
+
+</body>
+</html>
