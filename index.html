@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Poule de chair – النسخة التحليلية الكاملة</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body{
+  font-family:'Tajawal',sans-serif;
+  background:#f7fdf9;
+}
+.card{
+  background:#fff;
+  border-radius:1.5rem;
+  padding:1.5rem;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+.input{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid #ddd;
+}
+</style>
+</head>
+
+<body>
+<div id="app" class="max-w-6xl mx-auto p-6">
+
+<h1 class="text-4xl font-black text-center text-green-700 mb-8">
+حاسبة تربية الدجاج اللاحم – تحليل حقيقي
+</h1>
+
+<!-- المدخلات -->
+<div class="grid sm:grid-cols-2 gap-6 mb-10">
+  <div class="card">
+    <label>عدد الكتاكيت</label>
+    <input type="number" v-model.number="f.numChicks" class="input">
+    <label class="mt-2">سعر الكتكوت</label>
+    <input type="number" v-model.number="f.priceChick" class="input">
+    <label class="mt-2">كمية العلف (قنطار)</label>
+    <input type="number" v-model.number="f.feedUsed" class="input">
+    <label class="mt-2">سعر القنطار</label>
+    <input type="number" v-model.number="f.feedPrice" class="input">
+  </div>
+
+  <div class="card">
+    <label>نفوق مبكر</label>
+    <input type="number" v-model.number="f.deadEarly" class="input">
+    <label class="mt-2">نفوق متوسط</label>
+    <input type="number" v-model.number="f.deadMid" class="input">
+    <label class="mt-2">نفوق متأخر</label>
+    <input type="number" v-model.number="f.deadLate" class="input">
+    <label class="mt-2">غير مباع</label>
+    <input type="number" v-model.number="f.unsold" class="input">
+  </div>
+
+  <div class="card">
+    <label>الوزن المباع (كغ)</label>
+    <input type="number" v-model.number="f.totalWeight" class="input">
+    <label class="mt-2">سعر البيع / كغ</label>
+    <input type="number" v-model.number="f.sellPrice" class="input">
+  </div>
+
+  <div class="card">
+    <label>مصاريف أخرى</label>
+    <input type="number" v-model.number="f.otherCosts" class="input">
+  </div>
+</div>
+
+<button @click="show=true"
+class="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-xl mb-8">
+احسب النتائج
+</button>
+
+<!-- النتائج -->
+<div v-if="show" class="space-y-6">
+
+<div class="card bg-green-50 text-center">
+  <h2 class="text-xl font-bold">الربح الصافي الحقيقي</h2>
+  <p class="text-4xl font-black text-green-700">{{ netProfit.toLocaleString() }} دج</p>
+</div>
+
+<div class="grid sm:grid-cols-3 gap-4">
+  <div class="card text-center">
+    <p>إجمالي الإيرادات</p>
+    <p class="text-2xl font-bold text-green-600">{{ revenue.toLocaleString() }} دج</p>
+  </div>
+  <div class="card text-center">
+    <p>إجمالي التكاليف</p>
+    <p class="text-2xl font-bold text-red-600">{{ totalCosts.toLocaleString() }} دج</p>
+  </div>
+  <div class="card text-center">
+    <p>خسارة النفوق الكلية</p>
+    <p class="text-2xl font-bold text-orange-600">{{ deadCost.toLocaleString() }} دج</p>
+  </div>
+</div>
+
+<div class="grid sm:grid-cols-3 gap-4">
+  <div class="card text-center">
+    <p>خسارة غير المباع</p>
+    <p class="text-xl font-bold text-red-600">{{ unsoldCost.toLocaleString() }} دج</p>
+  </div>
+  <div class="card text-center">
+    <p>FCR</p>
+    <p class="text-xl font-bold">{{ fcr.toFixed(2) }}</p>
+  </div>
+  <div class="card text-center">
+    <p>متوسط وزن الدجاجة</p>
+    <p class="text-xl font-bold">{{ avgWeight.toFixed(2) }} كغ</p>
+  </div>
+</div>
+
+<div class="grid sm:grid-cols-3 gap-4">
+  <div class="card text-center">
+    <p>نسبة النفوق الكلية</p>
+    <p class="text-xl font-bold">{{ mortalityRate.toFixed(2) }}%</p>
+  </div>
+</div>
+
+</div>
+
+<p class="text-center text-sm text-gray-500 mt-10">
+تطوير: <b>Kaci Mebarek</b>
+</p>
+
+</div>
+
+<script>
+Vue.createApp({
+data(){
+return{
+show:false,
+f:{
+numChicks:0,priceChick:0,
+feedUsed:0,feedPrice:0,
+deadEarly:0,deadMid:0,deadLate:0,
+unsold:0,
+totalWeight:0,sellPrice:0,
+otherCosts:0
+}
+}
+},
+computed:{
+revenue(){return this.f.totalWeight*this.f.sellPrice},
+feedKg(){return this.f.feedUsed*100},
+avgFeedPerChick(){return this.feedKg/this.f.numChicks},
+deadCost(){
+const feedLoss=(this.f.deadEarly*0.2+this.f.deadMid*0.5+this.f.deadLate*0.85)*this.avgFeedPerChick*(this.f.feedPrice/100)
+const chickLoss=(this.f.deadEarly+this.f.deadMid+this.f.deadLate)*this.f.priceChick
+return feedLoss+chickLoss
+},
+unsoldCost(){
+return this.f.unsold*(this.f.sellPrice*this.avgWeight*0.7)
+},
+totalCosts(){
+return this.f.numChicks*this.f.priceChick+
+this.f.feedUsed*this.f.feedPrice+
+this.f.otherCosts
+},
+netProfit(){
+return this.revenue-this.totalCosts-this.deadCost-this.unsoldCost
+},
+fcr(){
+if(this.f.totalWeight<=0)return 0
+return this.feedKg/this.f.totalWeight
+},
+avgWeight(){
+const sold=this.f.numChicks-(this.f.deadEarly+this.f.deadMid+this.f.deadLate+this.f.unsold)
+if(sold<=0)return 0
+return this.f.totalWeight/sold
+},
+mortalityRate(){
+if(this.f.numChicks<=0)return 0
+return ((this.f.deadEarly+this.f.deadMid+this.f.deadLate)/this.f.numChicks)*100
+}
+}
+}).mount('#app')
+</script>
+
+</body>
+</html>
