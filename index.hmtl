@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Poule de chair calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { font-family: 'Tajawal', sans-serif; background-color:#fdfaf5; }
+.input { width:100%; padding:14px; border-radius:12px; border:1px solid #ddd; font-size:1.05rem; transition: all 0.3s; }
+.input:focus { border-color:#34d399; outline:none; box-shadow:0 0 0 3px rgba(52,211,153,0.3); }
+h1,h2,h3 { line-height:1.4; }
+.card { @apply p-6 rounded-3xl shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl; }
+</style>
+</head>
+<body>
+
+<div id="app" class="max-w-6xl mx-auto p-6">
+
+  <!-- العنوان -->
+  <h1 class="text-5xl font-black text-center mb-10 text-green-800">
+    Poule de Chair Calculator
+  </h1>
+
+  <!-- المدخلات -->
+  <div class="bg-white rounded-4xl shadow-2xl p-10 grid grid-cols-1 sm:grid-cols-2 gap-8">
+
+    <!-- تكاليف البداية -->
+    <h2 class="col-span-2 text-2xl font-extrabold text-green-700 mb-4 border-b-2 border-green-300 pb-2">تكاليف البداية / Début</h2>
+    <div>
+      <label class="font-semibold mb-1 block">عدد الكتاكيت / Nombre de poussins</label>
+      <input type="number" v-model.number="f.numChicks" class="input">
+    </div>
+    <div>
+      <label class="font-semibold mb-1 block">سعر الكتكوت (دج) / Prix poussin (DZD)</label>
+      <input type="number" v-model.number="f.priceChick" class="input">
+    </div>
+
+    <!-- التشغيل -->
+    <h2 class="col-span-2 text-2xl font-extrabold text-orange-700 mb-4 border-b-2 border-orange-300 pt-4 pb-2">تكاليف التشغيل / Exploitation</h2>
+    <div>
+      <label class="font-semibold mb-1 block">سعر القنطار علف (دج) / Prix sac aliment (DZD)</label>
+      <input type="number" v-model.number="f.feedPrice" class="input">
+    </div>
+    <div>
+      <label class="font-semibold mb-1 block">كمية العلف (قنطار) / Quantité aliment (qnt)</label>
+      <input type="number" v-model.number="f.feedUsed" class="input">
+    </div>
+    <div>
+      <label class="font-semibold mb-1 block">⚡ ماء + كهرباء + غاز / Eau + Électricité + Gaz</label>
+      <input type="number" v-model.number="f.energy" class="input">
+    </div>
+    <div>
+      <label class="font-semibold mb-1 block">دواء + لقاحات / Médicaments</label>
+      <input type="number" v-model.number="f.medicine" class="input">
+    </div>
+    <div>
+      <label class="font-semibold mb-1 block">الفرشة / Litière</label>
+      <input type="number" v-model.number="f.bedding" class="input">
+    </div>
+    <div>
+      <label class="font-semibold mb-1 block">التنظيف / Nettoyage</label>
+      <input type="number" v-model.number="f.cleaning" class="input">
+    </div>
+    <div>
+      <label class="font-semibold mb-1 block">الإيجار / Loyer</label>
+      <input type="number" v-model.number="f.rent" class="input">
+    </div>
+
+    <!-- التسويق -->
+    <h2 class="col-span-2 text-2xl font-extrabold text-blue-700 mb-4 border-b-2 border-blue-300 pt-4 pb-2">التسويق / Marketing</h2>
+    <div>
+      <label class="font-semibold mb-1 block">تكلفة الشحن للكيلو (دج) / Coût transport/kg</label>
+      <input type="number" v-model.number="f.shippingPerKg" class="input">
+    </div>
+
+    <!-- الدجاج الميت -->
+    <h2 class="col-span-2 text-2xl font-extrabold text-red-700 mb-4 border-b-2 border-red-300 pt-4 pb-2">الدجاج الميت وغير المباع / Poulets morts & invendus</h2>
+    <div>
+      <label class="font-semibold mb-1 block">مبكر / Précoce</label>
+      <input type="number" v-model.number="f.deadEarly" class="input">
+    </div>
+    <div>
+      <label class="font-semibold mb-1 block">متوسط / Moyen</label>
+      <input type="number" v-model.number="f.deadMid" class="input">
+    </div>
+    <div>
+      <label class="font-semibold mb-1 block">متأخر / Tardif</label>
+      <input type="number" v-model.number="f.deadLate" class="input">
+    </div>
+    <div>
+      <label class="font-semibold mb-1 block">غير مباع / Invendus</label>
+      <input type="number" v-model.number="f.unsold" class="input">
+    </div>
+
+    <!-- الإنتاج والبيع -->
+    <h2 class="col-span-2 text-2xl font-extrabold text-green-700 mb-4 border-b-2 border-green-300 pt-4 pb-2">الإنتاج والبيع / Production & Vente</h2>
+    <div>
+      <label class="font-semibold mb-1 block">⚖ الوزن المباع (كغ) / Poids vendu (kg)</label>
+      <input type="number" v-model.number="f.totalWeight" class="input">
+    </div>
+    <div>
+      <label class="font-semibold mb-1 block">سعر بيع الكيلو (دج) / Prix vente/kg</label>
+      <input type="number" v-model.number="f.sellPrice" class="input">
+    </div>
+
+  </div>
+
+  <!-- زر الحساب -->
+  <div class="text-center mt-10">
+    <button @click="calculate"
+      class="bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white text-xl font-bold px-12 py-4 rounded-3xl shadow-xl transition-all transform hover:-translate-y-1">
+      احسب النتائج / Calculer
+    </button>
+  </div>
+
+  <!-- النتائج -->
+  <div v-if="show" class="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+
+    <div class="card bg-green-50">
+      <h3 class="font-extrabold text-xl mb-1">الإيرادات / Revenus</h3>
+      <p class="text-gray-500 text-sm mb-2">ما حصل من البيع / Revenus de vente</p>
+      <p class="text-2xl font-extrabold text-green-700">+ {{ revenue.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="card bg-red-50">
+      <h3 class="font-extrabold text-xl mb-1">إجمالي التكاليف / Coût total</h3>
+      <p class="text-gray-500 text-sm mb-2">كل المصاريف / Toutes dépenses</p>
+      <p class="text-2xl font-extrabold text-red-600">- {{ totalCost.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="card bg-blue-50">
+      <h3 class="font-extrabold text-xl mb-1">تكلفة الشحن الكلية / Coût transport total</h3>
+      <p class="text-gray-500 text-sm mb-2">شحن جميع الكيلو / Transport total</p>
+      <p class="text-2xl font-extrabold text-red-600">- {{ shippingCost.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="card bg-red-100">
+      <h3 class="font-extrabold text-xl mb-1">الدجاج الميت / Poulets morts</h3>
+      <p class="text-gray-500 text-sm mb-2">خسارة الدجاج الميت / Perte poulets morts</p>
+      <p class="text-2xl font-extrabold text-red-600">- {{ deadCost.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="card bg-orange-50">
+      <h3 class="font-extrabold text-xl mb-1">غير المباع / Invendus</h3>
+      <p class="text-gray-500 text-sm mb-2">خسارة الفرز / Perte invendus</p>
+      <p class="text-2xl font-extrabold text-red-600">- {{ unsoldCost.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="card bg-yellow-50">
+      <h3 class="font-extrabold text-xl mb-1">العلف المهدور / Feed perdu</h3>
+      <p class="text-gray-500 text-sm mb-2">العلف الضائع (قنطار) / Aliments gaspillés (qnt)</p>
+      <p class="text-2xl font-extrabold text-red-600">- {{ wastedFeedQnt.toFixed(2) }} قنطار / {{ wastedFeedCost.toLocaleString() }} دج</p>
+    </div>
+
+    <div class="card bg-purple-50">
+      <h3 class="font-extrabold text-xl mb-1">FCR / كفاءة التحويل الغذائي</h3>
+      <p class="text-gray-500 text-sm mb-2">كمية العلف لكل كيلو لحم مباع / Aliments/kg viande</p>
+      <p class="text-2xl font-extrabold"
+         :class="feedPerKg <= 2.0 ? 'text-green-700' : feedPerKg <= 2.5 ? 'text-orange-500' : 'text-red-600'">
+         {{ feedPerKg.toFixed(2) }} كغ / كغ
+      </p>
+    </div>
+
+    <div class="col-span-2 lg:col-span-3 p-8 rounded-3xl shadow-2xl text-center"
+         :class="profit >= 0 ? 'bg-green-100' : 'bg-red-100'">
+      <h3 class="text-3xl font-black mb-2">
+        {{ profit >= 0 ? 'الربح النهائي / Profit net' : 'الخسارة النهائية / Perte nette' }}
+      </h3>
+      <p class="text-4xl font-extrabold">
+        {{ profit.toLocaleString() }} دج
+      </p>
+    </div>
+
+  </div>
+
+  <!-- توقيع -->
+  <p class="text-center text-sm text-gray-500 mt-12">
+    Developed by <span class="font-bold">Kaci Mebarek</span> • Poultry Analysis Tool
+  </p>
+
+</div>
+
+<script>
+Vue.createApp({
+data(){
+return{
+show:false,
+f:{
+numChicks:3000,
+priceChick:50,
+feedPrice:9500,
+feedUsed:150,
+energy:50000,
+medicine:150000,
+bedding:50000,
+cleaning:0,
+rent:100000,
+shippingPerKg:50,
+deadEarly:0,
+deadMid:0,
+deadLate:0,
+unsold:0,
+totalWeight:7128,
+sellPrice:305
+}
+}
+},
+computed:{
+revenue(){ return this.f.totalWeight * this.f.sellPrice },
+shippingCost(){ return this.f.totalWeight * this.f.shippingPerKg },
+totalCost(){
+const chicks = this.f.numChicks * this.f.priceChick
+const feed = this.f.feedUsed * this.f.feedPrice
+return chicks + feed + this.f.energy + this.f.medicine + this.f.bedding + this.f.cleaning + this.f.rent + this.shippingCost
+},
+deadCost(){
+const totalDead = this.f.deadEarly + this.f.deadMid + this.f.deadLate
+const avgFeed = this.f.feedUsed / this.f.numChicks
+const feedDead = (this.f.deadEarly*0.2 + this.f.deadMid*0.5 + this.f.deadLate*0.85) * avgFeed * this.f.feedPrice
+const chickDead = totalDead * this.f.priceChick
+return feedDead + chickDead
+},
+unsoldCost(){
+const avgFeed = this.f.feedUsed / this.f.numChicks
+const feedUnsold = this.f.unsold * avgFeed * 0.85 * this.f.feedPrice
+const chickUnsold = this.f.unsold * this.f.priceChick
+return feedUnsold + chickUnsold
+},
+wastedFeedQnt(){
+const totalDead = this.f.deadEarly + this.f.deadMid + this.f.deadLate
+const avgFeed = this.f.feedUsed / this.f.numChicks
+return (totalDead + this.f.unsold) * avgFeed * (0.2+0.5+0.85)/3
+},
+wastedFeedCost(){ return this.wastedFeedQnt * this.f.feedPrice },
+profit(){ return this.revenue - this.totalCost - this.deadCost - this.unsoldCost },
+feedPerKg(){
+if(this.f.totalWeight <= 0) return 0
+return (this.f.feedUsed * 100) / this.f.totalWeight
+}
+},
+methods:{ calculate(){ this.show = true } }
+}).mount('#app')
+</script>
+
+</body>
+</html>
